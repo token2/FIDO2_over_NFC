@@ -2,6 +2,10 @@
 
 A credential provider for Android that enables FIDO2/CTAP2 security keys over NFC.
 
+[<img src="https://f-droid.org/badge/get-it-on.png"
+    alt="Get it on F-Droid"
+    height="80">](https://f-droid.org/packages/pl.lebihan.authnkey)
+
 ## Background
 
 Android does not support CTAP2 over NFC. The built-in WebAuthn implementation only handles basic U2F-style authentication for NFC keys, which means no PIN verification and no discoverable credentials (passkeys). USB-C keys have better support, but NFC keys are limited to tap-to-authenticate without user verification.
