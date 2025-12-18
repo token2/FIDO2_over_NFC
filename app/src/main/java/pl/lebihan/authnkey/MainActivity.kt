@@ -506,10 +506,10 @@ class MainActivity : AppCompatActivity() {
                 resultText.text = getString(R.string.verifying_pin)
                 // get uvAuthToken with permissions for CTAP2.1 keys
                 if(!usePreviewCommand) { 
-                    val authenticated = withContext(Dispatchers.IO) { protocol.getPinToken(pin) }
+                    val authenticated = withContext(Dispatchers.IO) { protocol.getPinToken(pin,4) }
                 }
                 else {
-                    val authenticated = withContext(Dispatchers.IO) { protocol.getPinToken(pin,4) }
+                    val authenticated = withContext(Dispatchers.IO) { protocol.getPinToken(pin) }
                 }
                 if (!authenticated) {
                     if (isNfcDisconnected()) {
