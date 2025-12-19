@@ -2,6 +2,7 @@ package pl.lebihan.authnkey
 
 import android.app.PendingIntent
 import android.content.Intent
+import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.CancellationSignal
 import android.os.OutcomeReceiver
@@ -92,6 +93,7 @@ class AuthnkeyCredentialService : CredentialProviderService() {
                     request.beginGetCredentialOptions.first() as BeginGetPublicKeyCredentialOption
                 )
                     .setDisplayName(getString(R.string.credential_entry_tap))
+                    .setIcon(Icon.createWithResource(this, R.drawable.security_key_gray_24))
                     .build()
 
                 credentialEntries.add(entry)
@@ -185,6 +187,7 @@ class AuthnkeyCredentialService : CredentialProviderService() {
                 option
             )
                 .setDisplayName(getString(R.string.credential_get_description, rpId))
+                .setIcon(Icon.createWithResource(this, R.drawable.security_key_gray_24))
                 .build()
 
             entries.add(entry)
