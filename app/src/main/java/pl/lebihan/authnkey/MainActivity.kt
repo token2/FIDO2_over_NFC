@@ -427,9 +427,8 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 val protocol = pinProtocol ?: throw Exception("PIN protocol not initialized")
-                val retries = withContext(Dispatchers.IO) { protocol.getPinRetries() }
-
-                if (retries == null) {
+                val retries = withContext(Dispatchers.IO) { protocol.getPinRetries() }.getOrElse { e ->
+                    if (e is java.io.IOException) throw e
                     resultText.text = getString(R.string.error_could_not_get_pin_status)
                     pendingAction = null
                     return@launch
@@ -626,7 +625,7 @@ class MainActivity : AppCompatActivity() {
 
                 resultText.text = getString(R.string.checking_pin_status)
 
-                val retries = withContext(Dispatchers.IO) { protocol.getPinRetries() }
+                val retries = withContext(Dispatchers.IO) { protocol.getPinRetries() }.getOrNull()
 
                 val dialogView = layoutInflater.inflate(R.layout.dialog_pin, null)
                 val currentPinEdit = dialogView.findViewById<EditText>(R.id.currentPin)

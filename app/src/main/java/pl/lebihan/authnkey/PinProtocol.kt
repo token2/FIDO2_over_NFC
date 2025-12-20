@@ -125,18 +125,24 @@ class PinProtocol(private val transport: FidoTransport) {
         }
     }
 
-    suspend fun getPinRetries(): Int? {
-        try {
+    suspend fun getPinRetries(): Result<Int> {
+        return try {
             val response = transport.sendCtapCommand(CTAP.buildGetPinRetriesCommand())
             if (!CTAP.isSuccess(response)) {
-                return null
+                return Result.failure(CTAP.Exception(
+                    CTAP.getResponseError(response) ?: CTAP.Error.OTHER
+                ))
             }
 
             val data = response.drop(1).toByteArray()
             val parsed = CborMap.decode(data)
-            return parsed?.int(3)
+                ?: return Result.failure(Exception("Failed to parse response"))
+            val retries = parsed.int(3)
+                ?: return Result.failure(Exception("Missing retries field"))
+
+            Result.success(retries)
         } catch (e: Exception) {
-            return null
+            Result.failure(e)
         }
     }
 

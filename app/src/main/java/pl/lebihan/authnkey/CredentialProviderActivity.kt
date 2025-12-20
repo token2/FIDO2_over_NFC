@@ -456,12 +456,12 @@ class CredentialProviderActivity : AppCompatActivity() {
                     }
                     // UV required/preferred and device has PIN - need to get PIN
                     userVerification != UserVerification.DISCOURAGED && deviceHasPin -> {
-                        val retries = withContext(Dispatchers.IO) { protocol.getPinRetries() } ?: 8
+                        val retries = withContext(Dispatchers.IO) { protocol.getPinRetries() }.getOrDefault(8)
                         showPinDialog(retries, json)
                     }
                     // UV discouraged but device has alwaysUv - need PIN anyway
                     userVerification == UserVerification.DISCOURAGED && alwaysUv && deviceHasPin -> {
-                        val retries = withContext(Dispatchers.IO) { protocol.getPinRetries() } ?: 8
+                        val retries = withContext(Dispatchers.IO) { protocol.getPinRetries() }.getOrDefault(8)
                         showPinDialog(retries, json)
                     }
                     // UV discouraged or preferred with no PIN - try without
@@ -487,7 +487,7 @@ class CredentialProviderActivity : AppCompatActivity() {
                     e.error == CTAP.Error.PIN_AUTH_INVALID) {
                     Log.d(TAG, "Authenticator requires PIN despite UV=discouraged")
                     val protocol = pinProtocol ?: throw Exception("No PIN protocol")
-                    val retries = withContext(Dispatchers.IO) { protocol.getPinRetries() } ?: 8
+                    val retries = withContext(Dispatchers.IO) { protocol.getPinRetries() }.getOrDefault(8)
                     showPinDialog(retries, json)
                 } else {
                     throw e
@@ -535,7 +535,7 @@ class CredentialProviderActivity : AppCompatActivity() {
                     protocol.getPinToken(pin, permissions, rpId)
                 }
                 if (!authenticated) {
-                    val retries = withContext(Dispatchers.IO) { protocol.getPinRetries() } ?: 0
+                    val retries = withContext(Dispatchers.IO) { protocol.getPinRetries() }.getOrThrow()
                     if (retries > 0) {
                         runOnUiThread {
                             showProgress(false)
