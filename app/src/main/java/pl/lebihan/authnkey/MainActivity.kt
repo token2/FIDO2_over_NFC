@@ -11,7 +11,6 @@ import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.nfc.NfcAdapter
 import android.nfc.Tag
-import android.nfc.TagLostException
 import android.nfc.tech.IsoDep
 import android.os.Build
 import android.os.Bundle
