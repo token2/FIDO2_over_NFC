@@ -5,13 +5,10 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.res.ColorStateList
 import android.os.Bundle
-import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
-import android.view.inputmethod.EditorInfo
-import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -23,8 +20,6 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 
 class CredentialBottomSheet : BottomSheetDialogFragment() {
 
@@ -49,8 +44,7 @@ class CredentialBottomSheet : BottomSheetDialogFragment() {
     private lateinit var progressBar: ProgressBar
     private lateinit var btnCancel: MaterialButton
     private lateinit var btnContinue: MaterialButton
-    private lateinit var pinInputLayout: TextInputLayout
-    private lateinit var pinEditText: TextInputEditText
+    private lateinit var pinInputField: PinInputField
     private lateinit var iconStatus: ImageView
     private lateinit var iconBackground: View
     private lateinit var accountList: RecyclerView
@@ -65,10 +59,6 @@ class CredentialBottomSheet : BottomSheetDialogFragment() {
     var onCancelClick: (() -> Unit)? = null
     var onPinEntered: ((String) -> Unit)? = null
     var onAccountSelected: ((Int) -> Unit)? = null
-
-    private val useNumericKeyboard: Boolean
-        get() = requireContext().getSharedPreferences("authnkey_prefs", Context.MODE_PRIVATE)
-            .getBoolean("use_numeric_keyboard", true)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -95,22 +85,24 @@ class CredentialBottomSheet : BottomSheetDialogFragment() {
         progressBar = view.findViewById(R.id.progressBar)
         btnCancel = view.findViewById(R.id.btnCancel)
         btnContinue = view.findViewById(R.id.btnContinue)
-        pinInputLayout = view.findViewById(R.id.pinInputLayout)
-        pinEditText = view.findViewById(R.id.pinEditText)
+        pinInputField = view.findViewById(R.id.pinInputField)
         iconStatus = view.findViewById(R.id.iconStatus)
         iconBackground = view.findViewById(R.id.iconBackground)
         accountList = view.findViewById(R.id.accountList)
 
         accountList.layoutManager = LinearLayoutManager(context)
 
+        // Configure PIN input field
+        pinInputField.useNumericKeyboard = getKeyboardPreference()
+        pinInputField.onKeyboardModeChanged = { saveKeyboardPreference(it) }
+
         pendingStatus?.let { statusText.text = it }
         pendingInstruction?.let { instructionText.text = it }
 
         if (pendingShowPinInput) {
-            pinInputLayout.visibility = View.VISIBLE
+            pinInputField.visibility = View.VISIBLE
             btnContinue.visibility = View.VISIBLE
-            applyKeyboardMode(useNumericKeyboard)
-            pinEditText.requestFocus()
+            pinInputField.focus()
         }
 
         applyState(pendingState)
@@ -123,17 +115,8 @@ class CredentialBottomSheet : BottomSheetDialogFragment() {
             submitPin()
         }
 
-        pinEditText.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-                submitPin()
-                true
-            } else {
-                false
-            }
-        }
-
-        pinInputLayout.setStartIconOnClickListener {
-            onKeyboardModeToggled()
+        pinInputField.setOnDoneAction {
+            submitPin()
         }
 
         (dialog as? BottomSheetDialog)?.behavior?.apply {
@@ -153,57 +136,18 @@ class CredentialBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun submitPin() {
-        val pin = pinEditText.text?.toString() ?: ""
-        if (pin.length >= 4) {
-            pinInputLayout.error = null
+        pinInputField.validateAndGetPin()?.let { pin ->
             onPinEntered?.invoke(pin)
-        } else {
-            pinInputLayout.error = getString(R.string.pin_too_short)
         }
     }
 
-    private fun applyKeyboardMode(numeric: Boolean) {
-        pinInputLayout.setStartIconDrawable(
-            if (numeric) R.drawable.keyboard_24 else R.drawable.dialpad_24
-        )
+    private fun getKeyboardPreference(): Boolean =
+        requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getBoolean(PREF_USE_NUMERIC_KEYBOARD, true)
 
-        pinEditText.inputType = if (numeric) {
-            InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
-        } else {
-            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-        }
-    }
-
-    private fun onKeyboardModeToggled() {
-        val newMode = !useNumericKeyboard
-
-        requireContext().getSharedPreferences("authnkey_prefs", Context.MODE_PRIVATE)
-            .edit {
-                putBoolean("use_numeric_keyboard", newMode)
-            }
-
-        pinEditText.inputType = if (newMode) {
-            InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
-        } else {
-            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-        }
-
-        val iconRes = if (newMode) R.drawable.keyboard_24 else R.drawable.dialpad_24
-        pinInputLayout.findViewById<View>(com.google.android.material.R.id.text_input_start_icon)?.let { iconView ->
-            iconView.animate()
-                .alpha(0f)
-                .setDuration(100)
-                .withEndAction {
-                    pinInputLayout.setStartIconDrawable(iconRes)
-                    iconView.alpha = 1f
-                }
-                .start()
-        } ?: pinInputLayout.setStartIconDrawable(iconRes)
-
-        pinEditText.post {
-            val imm = requireContext().getSystemService(InputMethodManager::class.java)
-            imm?.restartInput(pinEditText)
-        }
+    private fun saveKeyboardPreference(numeric: Boolean) {
+        requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit { putBoolean(PREF_USE_NUMERIC_KEYBOARD, numeric) }
     }
 
     fun setState(state: State) {
@@ -284,23 +228,14 @@ class CredentialBottomSheet : BottomSheetDialogFragment() {
     }
 
     fun showPinInput(show: Boolean) {
-        if (::pinInputLayout.isInitialized) {
-            pinInputLayout.visibility = if (show) View.VISIBLE else View.GONE
+        if (::pinInputField.isInitialized) {
+            pinInputField.visibility = if (show) View.VISIBLE else View.GONE
             btnContinue.visibility = if (show) View.VISIBLE else View.GONE
             if (show) {
                 hideAccounts()
-                pinEditText.text?.clear()
-                pinInputLayout.error = null
-                applyKeyboardMode(useNumericKeyboard)
-                pinEditText.requestFocus()
+                pinInputField.clear()
                 setState(State.PIN)
-                pinEditText.post {
-                    val imm = requireContext().getSystemService(InputMethodManager::class.java)
-                    imm?.showSoftInput(pinEditText, InputMethodManager.SHOW_IMPLICIT)
-                }
-            } else {
-                val imm = requireContext().getSystemService(InputMethodManager::class.java)
-                imm?.hideSoftInputFromWindow(pinEditText.windowToken, 0)
+                pinInputField.focus()
             }
         } else {
             pendingShowPinInput = show
@@ -312,7 +247,7 @@ class CredentialBottomSheet : BottomSheetDialogFragment() {
         if (!::accountList.isInitialized) return
 
         setState(State.ACCOUNT_SELECT)
-        pinInputLayout.visibility = View.GONE
+        pinInputField.visibility = View.GONE
         btnContinue.visibility = View.GONE
         accountList.visibility = View.VISIBLE
         accountList.adapter = AccountAdapter(accounts) { index ->
@@ -327,15 +262,15 @@ class CredentialBottomSheet : BottomSheetDialogFragment() {
     }
 
     fun setPinError(error: String?) {
-        if (::pinInputLayout.isInitialized) {
-            pinInputLayout.error = error
+        if (::pinInputField.isInitialized) {
+            pinInputField.error = error
         }
     }
 
     fun getCurrentPinIfValid(): String? {
-        if (!::pinEditText.isInitialized) return null
-        val pin = pinEditText.text?.toString() ?: return null
-        return if (pin.length >= 4) pin else null
+        if (!::pinInputField.isInitialized) return null
+        val pin = pinInputField.pin ?: return null
+        return if (pin.length >= pinInputField.minPinLength) pin else null
     }
 
     private class AccountAdapter(
@@ -375,6 +310,8 @@ class CredentialBottomSheet : BottomSheetDialogFragment() {
         const val TAG = "CredentialBottomSheet"
         private const val ARG_STATUS = "status"
         private const val ARG_INSTRUCTION = "instruction"
+        private const val PREFS_NAME = "authnkey_prefs"
+        private const val PREF_USE_NUMERIC_KEYBOARD = "use_numeric_keyboard"
 
         fun newInstance(status: String, instruction: String): CredentialBottomSheet {
             return CredentialBottomSheet().apply {

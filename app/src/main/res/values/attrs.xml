@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="PinInputField">
+        <attr name="pinHint" format="string" />
+        <attr name="minPinLength" format="integer" />
+    </declare-styleable>
+</resources>
