@@ -10,4 +10,43 @@
     
     <!-- Tag lost warning state -->
     <color name="warning_container">#7C2D12</color>
+    
+    <!-- Letter avatar colors for dark theme (slightly muted backgrounds, lighter text) -->
+    <array name="avatar_background_colors">
+        <item>#4E342E</item> <!-- Red-brown -->
+        <item>#5D4037</item> <!-- Pink-brown -->
+        <item>#4A148C</item> <!-- Purple -->
+        <item>#311B92</item> <!-- Deep Purple -->
+        <item>#1A237E</item> <!-- Indigo -->
+        <item>#0D47A1</item> <!-- Blue -->
+        <item>#01579B</item> <!-- Light Blue -->
+        <item>#006064</item> <!-- Cyan -->
+        <item>#004D40</item> <!-- Teal -->
+        <item>#1B5E20</item> <!-- Green -->
+        <item>#33691E</item> <!-- Light Green -->
+        <item>#F57F17</item> <!-- Yellow -->
+        <item>#FF6F00</item> <!-- Amber -->
+        <item>#E65100</item> <!-- Orange -->
+        <item>#BF360C</item> <!-- Deep Orange -->
+        <item>#3E2723</item> <!-- Brown -->
+    </array>
+    
+    <array name="avatar_text_colors">
+        <item>#FFCDD2</item> <!-- Red -->
+        <item>#F8BBD9</item> <!-- Pink -->
+        <item>#E1BEE7</item> <!-- Purple -->
+        <item>#D1C4E9</item> <!-- Deep Purple -->
+        <item>#C5CAE9</item> <!-- Indigo -->
+        <item>#BBDEFB</item> <!-- Blue -->
+        <item>#B3E5FC</item> <!-- Light Blue -->
+        <item>#B2EBF2</item> <!-- Cyan -->
+        <item>#B2DFDB</item> <!-- Teal -->
+        <item>#C8E6C9</item> <!-- Green -->
+        <item>#DCEDC8</item> <!-- Light Green -->
+        <item>#FFF9C4</item> <!-- Yellow -->
+        <item>#FFECB3</item> <!-- Amber -->
+        <item>#FFE0B2</item> <!-- Orange -->
+        <item>#FFCCBC</item> <!-- Deep Orange -->
+        <item>#D7CCC8</item> <!-- Brown -->
+    </array>
 </resources>

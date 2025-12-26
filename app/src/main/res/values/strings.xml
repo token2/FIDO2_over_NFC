@@ -184,4 +184,19 @@
     <string name="provider_not_enabled">Passkey provider not enabled</string>
     <string name="unknown_device">Unknown Device</string>
     <string name="device_info_format">VID: %1$s, PID: %2$s</string>
+    
+    <!-- Credentials Dialog -->
+    <string name="credentials_dialog_title">Stored Credentials</string>
+    <string name="credentials_stats">%1$d credentials • %2$d slots remaining</string>
+    <string name="credential_detail_display_name">Display name</string>
+    <string name="credential_detail_username">Username</string>
+    <string name="credential_detail_user_id">User ID</string>
+    <string name="credential_detail_credential_id">Credential ID</string>
+    <string name="credential_detail_protection">Protection</string>
+    <string name="credential_delete">Delete credential</string>
+    <string name="credential_delete_confirm_title">Delete credential?</string>
+    <string name="credential_delete_confirm_message">This will permanently delete the passkey for %1$s. You won\'t be able to sign in to this site with this security key anymore.</string>
+    <string name="credential_deleted">Credential deleted</string>
+    <string name="credential_delete_error">Failed to delete: %1$s</string>
+    <string name="delete">Delete</string>
 </resources>

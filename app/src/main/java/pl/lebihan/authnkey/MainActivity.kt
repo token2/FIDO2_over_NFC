@@ -61,6 +61,10 @@ class MainActivity : AppCompatActivity() {
     private var awaitingNfcReconnect: Boolean = false
     private var reconnectDialog: AlertDialog? = null
 
+    // Credentials dialog state
+    private var credentialsDialog: AlertDialog? = null
+    private var credentialsContent: CredentialsDialogContent? = null
+
     private val scope = CoroutineScope(Dispatchers.Main + Job())
 
     private val usbPermissionReceiver = object : BroadcastReceiver() {
@@ -621,12 +625,19 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                // Format and display the complete report
-                val report = OutputFormatter.CredentialReport(
-                    metadata = metadata,
-                    relyingParties = rpsWithCredentials
-                )
-                resultText.text = outputFormatter.formatCredentialReport(report)
+                // Build flat list of credentials with their RP IDs
+                val credentialItems = rpsWithCredentials.flatMap { rpWithCreds ->
+                    rpWithCreds.credentials?.map { cred ->
+                        CredentialItem(
+                            rpId = rpWithCreds.relyingParty.rpId ?: rpWithCreds.relyingParty.rpIdHash.toHex(),
+                            credential = cred
+                        )
+                    } ?: emptyList()
+                }
+
+                // Show credentials dialog
+                showCredentialsDialog(metadata, credentialItems)
+                resultText.text = ""
 
                 // Clear action after successful operation
                 pendingAction = null
@@ -770,6 +781,78 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     resultText.text = e.toUserMessage(this@MainActivity)
                     pendingAction = null
+                }
+            }
+        }
+    }
+
+    private fun showCredentialsDialog(
+        metadata: CredentialManagement.CredentialMetadata,
+        credentials: List<CredentialItem>
+    ) {
+        credentialsDialog?.dismiss()
+
+        val content = CredentialsDialogContent(
+            context = this,
+            credentials = credentials,
+            initialRemaining = metadata.maxPossibleRemainingCredentials,
+            onDelete = ::confirmDeleteCredential
+        )
+        credentialsContent = content
+
+        credentialsDialog = MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.credentials_dialog_title)
+            .setView(content.view)
+            .setPositiveButton(R.string.ok, null)
+            .setOnDismissListener {
+                credentialsDialog = null
+                credentialsContent = null
+            }
+            .create()
+        credentialsDialog?.show()
+    }
+
+    private fun confirmDeleteCredential(item: CredentialItem) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.credential_delete_confirm_title)
+            .setMessage(getString(R.string.credential_delete_confirm_message, item.rpId))
+            .setPositiveButton(R.string.delete) { _, _ -> deleteCredential(item) }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun deleteCredential(item: CredentialItem) {
+        scope.launch {
+            try {
+                val credMgmt = credentialManagement
+                    ?: throw AuthnkeyError.NotConnected()
+
+                resultText.text = getString(R.string.instruction_verifying)
+
+                val result = withContext(Dispatchers.IO) {
+                    credMgmt.deleteCredential(item.credential.credentialId)
+                }
+
+                result.fold(
+                    onSuccess = {
+                        credentialsContent?.notifyDeleted(item)
+                        resultText.text = getString(R.string.credential_deleted)
+                    },
+                    onFailure = { error ->
+                        if (isNfcDisconnected()) {
+                            credentialsDialog?.dismiss()
+                            showNfcReconnectDialog()
+                        } else {
+                            resultText.text = getString(R.string.credential_delete_error, error.toUserMessage(this@MainActivity))
+                        }
+                    }
+                )
+            } catch (e: Exception) {
+                if (isNfcDisconnected()) {
+                    credentialsDialog?.dismiss()
+                    showNfcReconnectDialog()
+                } else {
+                    resultText.text = getString(R.string.credential_delete_error, e.toUserMessage(this@MainActivity))
                 }
             }
         }

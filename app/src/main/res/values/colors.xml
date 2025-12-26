@@ -10,4 +10,43 @@
     
     <!-- Tag lost warning state -->
     <color name="warning_container">#FED7AA</color>
+    
+    <!-- Letter avatar colors (background / text pairs) -->
+    <array name="avatar_background_colors">
+        <item>#FFCDD2</item> <!-- Red -->
+        <item>#F8BBD9</item> <!-- Pink -->
+        <item>#E1BEE7</item> <!-- Purple -->
+        <item>#D1C4E9</item> <!-- Deep Purple -->
+        <item>#C5CAE9</item> <!-- Indigo -->
+        <item>#BBDEFB</item> <!-- Blue -->
+        <item>#B3E5FC</item> <!-- Light Blue -->
+        <item>#B2EBF2</item> <!-- Cyan -->
+        <item>#B2DFDB</item> <!-- Teal -->
+        <item>#C8E6C9</item> <!-- Green -->
+        <item>#DCEDC8</item> <!-- Light Green -->
+        <item>#FFF9C4</item> <!-- Yellow -->
+        <item>#FFECB3</item> <!-- Amber -->
+        <item>#FFE0B2</item> <!-- Orange -->
+        <item>#FFCCBC</item> <!-- Deep Orange -->
+        <item>#D7CCC8</item> <!-- Brown -->
+    </array>
+    
+    <array name="avatar_text_colors">
+        <item>#C62828</item> <!-- Red -->
+        <item>#AD1457</item> <!-- Pink -->
+        <item>#6A1B9A</item> <!-- Purple -->
+        <item>#4527A0</item> <!-- Deep Purple -->
+        <item>#283593</item> <!-- Indigo -->
+        <item>#1565C0</item> <!-- Blue -->
+        <item>#0277BD</item> <!-- Light Blue -->
+        <item>#00838F</item> <!-- Cyan -->
+        <item>#00695C</item> <!-- Teal -->
+        <item>#2E7D32</item> <!-- Green -->
+        <item>#558B2F</item> <!-- Light Green -->
+        <item>#F9A825</item> <!-- Yellow -->
+        <item>#FF8F00</item> <!-- Amber -->
+        <item>#EF6C00</item> <!-- Orange -->
+        <item>#D84315</item> <!-- Deep Orange -->
+        <item>#4E342E</item> <!-- Brown -->
+    </array>
 </resources>
