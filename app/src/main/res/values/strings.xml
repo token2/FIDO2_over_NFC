@@ -14,6 +14,8 @@
     <string name="sign_in">Sign In</string>
     <string name="cancel">Cancel</string>
     <string name="close">Close</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
 
     <!-- Instructions -->
     <string name="instruction_connect_key">Hold your security key against the back of your phone, or plug it in via USB</string>
@@ -177,6 +179,43 @@
     <string name="device_info_algorithm_item">  Type: %1$s, Algorithm: %2$s</string>
     <string name="device_info_min_pin_length">Min PIN Length: %1$d</string>
     <string name="device_info_firmware">Firmware Version: %1$d</string>
+
+    <!-- Device Info Dialog Sections -->
+    <string name="device_info_section_versions">Versions</string>
+    <string name="device_info_section_extensions">Extensions</string>
+    <string name="device_info_section_aaguid">AAGUID</string>
+    <string name="device_info_section_options">Options</string>
+    <string name="device_info_section_interfaces">Supported Interfaces</string>
+    <string name="device_info_section_algorithms">Supported Algorithms</string>
+    <string name="device_info_section_limits">Limits</string>
+    <string name="device_info_dialog_title">Device Status</string>
+
+    <!-- Device Info Option Names -->
+    <string name="device_info_option_rk">Resident Keys</string>
+    <string name="device_info_option_up">User Presence</string>
+    <string name="device_info_option_uv">User Verification</string>
+    <string name="device_info_option_plat">Platform Authenticator</string>
+    <string name="device_info_option_clientPin">Client PIN</string>
+    <string name="device_info_option_credMgmt">Credential Management</string>
+    <string name="device_info_option_credentialMgmtPreview">Credential Management (Preview)</string>
+    <string name="device_info_option_largeBlobs">Large Blobs</string>
+    <string name="device_info_option_pinUvAuthToken">PIN/UV Auth Token</string>
+    <string name="device_info_option_authnrCfg">Authenticator Config</string>
+    <string name="device_info_option_setMinPINLength">Set Minimum PIN Length</string>
+    <string name="device_info_option_makeCredUvNotRqd">Make Credential UV Not Required</string>
+    <string name="device_info_option_alwaysUv">Always Require UV</string>
+    <string name="device_info_option_ep">Enterprise Attestation</string>
+    <string name="device_info_option_bioEnroll">Biometric Enrollment</string>
+    <string name="device_info_option_userVerificationMgmtPreview">User Verification Management (Preview)</string>
+    <string name="device_info_option_noMcGaPermissionsWithClientPin">No MC/GA Permissions With Client PIN</string>
+
+    <!-- Device Info Limit Labels -->
+    <string name="device_info_limit_max_msg_size">Max Message Size</string>
+    <string name="device_info_limit_max_creds_in_list">Max Credentials in List</string>
+    <string name="device_info_limit_max_cred_id_length">Max Credential ID Length</string>
+    <string name="device_info_limit_min_pin_length">Min PIN Length</string>
+    <string name="device_info_limit_pin_protocols">PIN/UV Auth Protocols</string>
+    <string name="device_info_limit_firmware">Firmware Version</string>
     
     <string name="choose_account">Choose an account</string>
     <string name="unknown_account">Unknown account</string>

@@ -407,7 +407,8 @@ class MainActivity : AppCompatActivity() {
 
                 val deviceInfo = CTAP.parseGetInfoStructured(response)
                 if (deviceInfo != null) {
-                    resultText.text = outputFormatter.formatDeviceInfo(deviceInfo)
+                    resultText.text = ""
+                    showDeviceInfoDialog(deviceInfo)
                 } else {
                     resultText.text = outputFormatter.formatDeviceInfoError("Failed to parse response")
                 }
@@ -423,6 +424,16 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun showDeviceInfoDialog(deviceInfo: DeviceInfo) {
+        val content = DeviceInfoDialogContent(this, deviceInfo)
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.device_info_dialog_title)
+            .setView(content.view)
+            .setPositiveButton(R.string.close, null)
+            .show()
     }
 
     private fun listCredentials() {
