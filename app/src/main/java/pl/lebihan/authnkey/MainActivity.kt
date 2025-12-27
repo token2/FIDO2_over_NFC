@@ -803,7 +803,7 @@ class MainActivity : AppCompatActivity() {
         credentialsDialog = MaterialAlertDialogBuilder(this)
             .setTitle(R.string.credentials_dialog_title)
             .setView(content.view)
-            .setPositiveButton(R.string.ok, null)
+            .setPositiveButton(R.string.close, null)
             .setOnDismissListener {
                 credentialsDialog = null
                 credentialsContent = null

@@ -13,6 +13,7 @@
     <string name="create_passkey">Create Passkey</string>
     <string name="sign_in">Sign In</string>
     <string name="cancel">Cancel</string>
+    <string name="close">Close</string>
 
     <!-- Instructions -->
     <string name="instruction_connect_key">Hold your security key against the back of your phone, or plug it in via USB</string>
