@@ -1,7 +1,13 @@
 package pl.lebihan.authnkey
 
+import android.annotation.SuppressLint
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
+import android.view.ActionMode
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -29,6 +35,8 @@ class DeviceInfoDialogContent(
     private val limitsLabel: TextView = view.findViewById(R.id.limitsLabel)
     private val limitsContainer: LinearLayout = view.findViewById(R.id.limitsContainer)
 
+    private var activeActionMode: ActionMode? = null
+
     init {
         populateVersions()
         populateExtensions()
@@ -37,6 +45,15 @@ class DeviceInfoDialogContent(
         populateInterfaces()
         populateAlgorithms()
         populateLimits()
+        setupOutsideTouchHandler()
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setupOutsideTouchHandler() {
+        view.setOnTouchListener { _, _ ->
+            activeActionMode?.finish()
+            false
+        }
     }
 
     private fun populateVersions() {
@@ -63,6 +80,34 @@ class DeviceInfoDialogContent(
             aaguidValue.visibility = View.GONE
         } else {
             aaguidValue.text = formatAaguid(aaguid)
+            aaguidValue.setOnLongClickListener { v ->
+                activeActionMode = v.startActionMode(object : ActionMode.Callback {
+                    override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
+                        mode.menuInflater.inflate(R.menu.menu_copy, menu)
+                        return true
+                    }
+
+                    override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean = false
+
+                    override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
+                        return when (item.itemId) {
+                            R.id.action_copy -> {
+                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                val clip = ClipData.newPlainText("AAGUID", aaguidValue.text)
+                                clipboard.setPrimaryClip(clip)
+                                mode.finish()
+                                true
+                            }
+                            else -> false
+                        }
+                    }
+
+                    override fun onDestroyActionMode(mode: ActionMode) {
+                        activeActionMode = null
+                    }
+                }, ActionMode.TYPE_FLOATING)
+                true
+            }
         }
     }
 
