@@ -713,67 +713,27 @@ class MainActivity : AppCompatActivity() {
 
         scope.launch {
             try {
+                val transport = currentTransport ?: throw AuthnkeyError.NotConnected()
                 val protocol = pinProtocol ?: throw AuthnkeyError.PinProtocolNotInitialized()
 
                 resultText.text = getString(R.string.checking_pin_status)
 
+                // Get device info to check if PIN is set
+                val infoResponse = withContext(Dispatchers.IO) {
+                    transport.sendCtapCommand(CTAP.buildCommand(CTAP.CMD_GET_INFO))
+                }
+                val deviceInfo = CTAP.parseGetInfoStructured(infoResponse)
+                val isPinSet = deviceInfo?.clientPinSet == true
+
                 val retries = withContext(Dispatchers.IO) { protocol.getPinRetries() }.getOrNull()
-
-                val dialogView = layoutInflater.inflate(R.layout.dialog_pin_change, null)
-                val currentPinField = dialogView.findViewById<PinInputField>(R.id.currentPin)
-                val newPinField = dialogView.findViewById<PinInputField>(R.id.newPin)
-                val confirmPinField = dialogView.findViewById<PinInputField>(R.id.confirmPin)
-
-                val useNumeric = getKeyboardPreference()
-                listOf(currentPinField, newPinField, confirmPinField).forEach { field ->
-                    field.useNumericKeyboard = useNumeric
-                }
-
-                val message = if (retries != null) {
-                    getString(R.string.pin_retries_status, retries)
-                } else {
-                    getString(R.string.error_pin_status)
-                }
 
                 pendingAction = null
 
-                val dialog = MaterialAlertDialogBuilder(this@MainActivity)
-                    .setTitle(getString(R.string.change_pin_title))
-                    .setMessage(message)
-                    .setView(dialogView)
-                    .setPositiveButton(getString(R.string.change), null)
-                    .setNegativeButton(getString(R.string.cancel), null)
-                    .create()
-
-                dialog.setOnShowListener {
-                    currentPinField.requestFocus()
-                    dialog.window?.let { window ->
-                        WindowCompat.getInsetsController(window, currentPinField)?.show(WindowInsetsCompat.Type.ime())
-                    }
-                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                        val currentPin = currentPinField.pin ?: ""
-                        val newPin = newPinField.pin ?: ""
-                        val confirmPin = confirmPinField.pin ?: ""
-
-                        confirmPinField.error = null
-
-                        when {
-                            newPin != confirmPin -> {
-                                confirmPinField.error = getString(R.string.error_pins_dont_match)
-                            }
-                            !newPinField.validate() -> {
-                                // error already set by validate()
-                            }
-                            else -> {
-                                dialog.dismiss()
-                                changePin(currentPin, newPin)
-                            }
-                        }
-                    }
+                if (isPinSet) {
+                    showChangePinDialogInternal(retries)
+                } else {
+                    showSetPinDialogInternal()
                 }
-
-                dialog.show()
-                resultText.text = ""
 
             } catch (e: Exception) {
                 if (isNfcDisconnected()) {
@@ -782,6 +742,163 @@ class MainActivity : AppCompatActivity() {
                     resultText.text = e.toUserMessage(this@MainActivity)
                     pendingAction = null
                     handleDisconnect()
+                }
+            }
+        }
+    }
+
+    private fun showSetPinDialogInternal() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_pin_set, null)
+        val newPinField = dialogView.findViewById<PinInputField>(R.id.newPin)
+        val confirmPinField = dialogView.findViewById<PinInputField>(R.id.confirmPin)
+
+        val useNumeric = getKeyboardPreference()
+        listOf(newPinField, confirmPinField).forEach { field ->
+            field.useNumericKeyboard = useNumeric
+        }
+
+        val dialog = MaterialAlertDialogBuilder(this@MainActivity)
+            .setTitle(getString(R.string.set_pin_title))
+            .setMessage(getString(R.string.no_pin_set_message))
+            .setView(dialogView)
+            .setPositiveButton(getString(R.string.set), null)
+            .setNegativeButton(getString(R.string.cancel), null)
+            .create()
+
+        dialog.setOnShowListener {
+            newPinField.requestFocus()
+            dialog.window?.let { window ->
+                WindowCompat.getInsetsController(window, newPinField)?.show(WindowInsetsCompat.Type.ime())
+            }
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val newPin = newPinField.pin ?: ""
+                val confirmPin = confirmPinField.pin ?: ""
+
+                confirmPinField.error = null
+
+                when {
+                    newPin != confirmPin -> {
+                        confirmPinField.error = getString(R.string.error_pins_dont_match)
+                    }
+                    !newPinField.validate() -> {
+                        // error already set by validate()
+                    }
+                    else -> {
+                        dialog.dismiss()
+                        setPin(newPin)
+                    }
+                }
+            }
+        }
+
+        dialog.show()
+        resultText.text = ""
+    }
+
+    private fun showChangePinDialogInternal(retries: Int?) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_pin_change, null)
+        val currentPinField = dialogView.findViewById<PinInputField>(R.id.currentPin)
+        val newPinField = dialogView.findViewById<PinInputField>(R.id.newPin)
+        val confirmPinField = dialogView.findViewById<PinInputField>(R.id.confirmPin)
+
+        val useNumeric = getKeyboardPreference()
+        listOf(currentPinField, newPinField, confirmPinField).forEach { field ->
+            field.useNumericKeyboard = useNumeric
+        }
+
+        val message = if (retries != null) {
+            getString(R.string.pin_retries_status, retries)
+        } else {
+            getString(R.string.error_pin_status)
+        }
+
+        val dialog = MaterialAlertDialogBuilder(this@MainActivity)
+            .setTitle(getString(R.string.change_pin_title))
+            .setMessage(message)
+            .setView(dialogView)
+            .setPositiveButton(getString(R.string.change), null)
+            .setNegativeButton(getString(R.string.cancel), null)
+            .create()
+
+        dialog.setOnShowListener {
+            currentPinField.requestFocus()
+            dialog.window?.let { window ->
+                WindowCompat.getInsetsController(window, currentPinField)?.show(WindowInsetsCompat.Type.ime())
+            }
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val currentPin = currentPinField.pin ?: ""
+                val newPin = newPinField.pin ?: ""
+                val confirmPin = confirmPinField.pin ?: ""
+
+                confirmPinField.error = null
+
+                when {
+                    newPin != confirmPin -> {
+                        confirmPinField.error = getString(R.string.error_pins_dont_match)
+                    }
+                    !newPinField.validate() -> {
+                        // error already set by validate()
+                    }
+                    else -> {
+                        dialog.dismiss()
+                        changePin(currentPin, newPin)
+                    }
+                }
+            }
+        }
+
+        dialog.show()
+        resultText.text = ""
+    }
+
+    private fun setPin(newPin: String) {
+        pendingAction = { setPin(newPin) }
+
+        scope.launch {
+            try {
+                val protocol = pinProtocol ?: throw AuthnkeyError.PinProtocolNotInitialized()
+
+                resultText.text = getString(R.string.initializing_pin_protocol)
+
+                val initialized = withContext(Dispatchers.IO) { protocol.initialize() }
+                if (!initialized) {
+                    if (isNfcDisconnected()) {
+                        showNfcReconnectDialog()
+                    } else {
+                        resultText.text = getString(R.string.error_init_pin_protocol)
+                        pendingAction = null
+                    }
+                    return@launch
+                }
+
+                resultText.text = getString(R.string.setting_pin)
+
+                val result = withContext(Dispatchers.IO) {
+                    protocol.setPin(newPin)
+                }
+
+                result.fold(
+                    onSuccess = {
+                        resultText.text = outputFormatter.formatPinSetSuccess()
+                        pendingAction = null
+                    },
+                    onFailure = { error ->
+                        if (isNfcDisconnected()) {
+                            showNfcReconnectDialog()
+                            return@launch
+                        }
+
+                        resultText.text = outputFormatter.formatPinSetError(error)
+                        pendingAction = null
+                    }
+                )
+
+            } catch (e: Exception) {
+                if (isNfcDisconnected()) {
+                    showNfcReconnectDialog()
+                } else {
+                    resultText.text = e.toUserMessage(this@MainActivity)
+                    pendingAction = null
                 }
             }
         }

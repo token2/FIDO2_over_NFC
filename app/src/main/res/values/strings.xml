@@ -36,7 +36,7 @@
     <string name="pin_dialog_title">Security Key PIN</string>
     <string name="pin_dialog_message">Enter your security key PIN</string>
     <string name="pin_hint">Enter PIN</string>
-    <string name="pin_hint_current">Current PIN (leave empty if not set)</string>
+    <string name="pin_hint_current">Current PIN</string>
     <string name="pin_hint_new">New PIN</string>
     <string name="pin_hint_confirm">Confirm new PIN</string>
     <string name="pin_continue">Continue</string>
@@ -120,6 +120,10 @@
     <string name="checking_pin_status">Checking PIN status…</string>
     <string name="pin_retries_status">PIN retries remaining: %1$d</string>
     <string name="change_pin_title">Change PIN</string>
+    <string name="set_pin_title">Set PIN</string>
+    <string name="set">Set</string>
+    <string name="setting_pin">Setting PIN…</string>
+    <string name="no_pin_set_message">No PIN is set on this authenticator</string>
     <string name="change">Change</string>
     <string name="initializing_pin_protocol">Initializing PIN protocol…</string>
     <string name="changing_pin">Changing PIN…</string>
@@ -139,6 +143,15 @@
     
     <string name="pin_not_set_title">No PIN Set</string>
     <string name="pin_not_set_message">Your authenticator does not have a PIN set.\n\nUse "Set PIN" instead of "Change PIN".</string>
+
+    <string name="pin_set_success_title">PIN Set Successfully</string>
+    <string name="pin_set_success_message">Your authenticator PIN has been set.\nPlease use this PIN for future operations.</string>
+
+    <string name="pin_already_set_title">PIN Already Set</string>
+    <string name="pin_already_set_message">A PIN is already configured on this authenticator.</string>
+
+    <string name="pin_set_failed_title">PIN Set Failed</string>
+    <string name="pin_set_failed_message">Error: %1$s\n\nPlease try again or consult your authenticator\'s documentation.</string>
     
     <string name="pin_change_failed_title">PIN Change Failed</string>
     <string name="pin_change_failed_message">Error: %1$s\n\nPlease try again or consult your authenticator\'s documentation.</string>

@@ -100,6 +100,9 @@ data class DeviceInfo(
 
     val usePreviewCommand: Boolean
         get() = supportsCredMgmtPreview && !supportsCredMgmt
+
+    val clientPinSet: Boolean
+        get() = options["clientPin"] == true
 }
 
 object CTAP {

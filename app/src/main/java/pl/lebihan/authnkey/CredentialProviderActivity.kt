@@ -446,7 +446,7 @@ class CredentialProviderActivity : AppCompatActivity() {
                 deviceInfo = CTAP.parseGetInfoStructured(infoResponse)
 
                 // Check if clientPin is actually set on the device
-                val deviceHasPin = deviceInfo?.options?.get("clientPin") == true
+                val deviceHasPin = deviceInfo?.clientPinSet == true
                 val alwaysUv = deviceInfo?.options?.get("alwaysUv") == true
 
                 when {

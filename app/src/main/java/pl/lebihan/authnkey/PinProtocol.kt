@@ -156,6 +156,53 @@ class PinProtocol(private val transport: FidoTransport) {
         }
     }
 
+    sealed class PinSetError(message: String) : Exception(message) {
+        class PinAlreadySet : PinSetError("A PIN is already set on this authenticator")
+        class PinPolicyViolation : PinSetError("PIN does not meet authenticator requirements")
+        class PinBlocked : PinSetError("PIN is blocked")
+        data class Other(val errorName: String) : PinSetError(errorName)
+    }
+
+    suspend fun setPin(newPin: String): Result<Unit> {
+        val secret = sharedSecret ?: return Result.failure(Exception("Shared secret not available"))
+        val pubKey = platformPublicKey ?: return Result.failure(Exception("Platform key not available"))
+
+        try {
+            val newPinBytes = newPin.toByteArray(Charsets.UTF_8)
+            val newPinPadded = ByteArray(64)
+            newPinBytes.copyInto(newPinPadded, 0, 0, newPinBytes.size)
+
+            val encryptedNewPin = aesEncrypt(secret, newPinPadded)
+
+            val mac = Mac.getInstance("HmacSHA256")
+            mac.init(SecretKeySpec(secret, "HmacSHA256"))
+            val hmacResult = mac.doFinal(encryptedNewPin)
+            val pinUvAuthParam = hmacResult.copyOf(16)
+
+            val command = buildSetPinCommand(pubKey, encryptedNewPin, pinUvAuthParam)
+            val response = transport.sendCtapCommand(command)
+
+            if (response.isEmpty()) {
+                return Result.failure(PinSetError.Other("Empty response"))
+            }
+
+            if (CTAP.isSuccess(response)) {
+                return Result.success(Unit)
+            }
+
+            return when (CTAP.getResponseError(response)) {
+                CTAP.Error.PIN_AUTH_INVALID -> Result.failure(PinSetError.PinAlreadySet())
+                CTAP.Error.NOT_ALLOWED -> Result.failure(PinSetError.PinAlreadySet())
+                CTAP.Error.PIN_POLICY_VIOLATION -> Result.failure(PinSetError.PinPolicyViolation())
+                CTAP.Error.PIN_BLOCKED -> Result.failure(PinSetError.PinBlocked())
+                else -> Result.failure(PinSetError.Other(CTAP.getErrorName(response[0])))
+            }
+
+        } catch (e: Exception) {
+            return Result.failure(e)
+        }
+    }
+
     sealed class PinChangeError(message: String) : Exception(message) {
         class InvalidPin : PinChangeError("Current PIN is incorrect")
         class PinBlocked : PinChangeError("PIN is blocked due to too many incorrect attempts")
@@ -263,6 +310,22 @@ class PinProtocol(private val transport: FidoTransport) {
                 if (rpId != null) {
                     0x0A to rpId
                 }
+            }
+        }
+    }
+
+    private fun buildSetPinCommand(
+        platformKey: ECPublicKey,
+        encryptedNewPin: ByteArray,
+        pinUvAuthParam: ByteArray
+    ): ByteArray {
+        return byteArrayOf(CTAP.CMD_CLIENT_PIN.toByte()) + cbor {
+            map {
+                1 to 1
+                2 to 3  // subCommand: setPin
+                3 to encodeCoseKey(platformKey)
+                4 to bytes(pinUvAuthParam)
+                5 to bytes(encryptedNewPin)
             }
         }
     }

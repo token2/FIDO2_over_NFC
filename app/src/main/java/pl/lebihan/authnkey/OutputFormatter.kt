@@ -292,6 +292,39 @@ class OutputFormatter(private val context: Context) {
         context.getString(R.string.pin_change_success_message)
     )
 
+    // ========== PIN Set Formatting ==========
+
+    /**
+     * Format PIN set error message
+     */
+    fun formatPinSetError(error: Throwable): String = when (error) {
+        is PinProtocol.PinSetError.PinAlreadySet -> status(
+            context.getString(R.string.pin_already_set_title),
+            context.getString(R.string.pin_already_set_message)
+        )
+        is PinProtocol.PinSetError.PinPolicyViolation -> status(
+            context.getString(R.string.pin_policy_violation_title),
+            context.getString(R.string.pin_policy_violation_message)
+        )
+        is PinProtocol.PinSetError.PinBlocked -> status(
+            context.getString(R.string.pin_blocked_title),
+            context.getString(R.string.pin_blocked_message)
+        )
+        is PinProtocol.PinSetError.Other -> status(
+            context.getString(R.string.pin_set_failed_title),
+            context.getString(R.string.pin_set_failed_message, error.errorName)
+        )
+        else -> context.getString(R.string.error_generic, error.message ?: "Unknown error")
+    }
+
+    /**
+     * Format PIN set success message
+     */
+    fun formatPinSetSuccess(): String = status(
+        context.getString(R.string.pin_set_success_title),
+        context.getString(R.string.pin_set_success_message)
+    )
+
     companion object {
         private const val SEPARATOR = "────────────────────────────────────────"
     }
