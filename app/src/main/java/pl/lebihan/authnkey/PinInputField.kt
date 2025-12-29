@@ -91,7 +91,7 @@ class PinInputField @JvmOverloads constructor(
             error = null
             true
         } else {
-            error = context.getString(R.string.pin_too_short)
+            error = context.getString(R.string.pin_too_short, minPinLength)
             false
         }
     }
