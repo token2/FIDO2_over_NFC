@@ -65,6 +65,8 @@ class MainActivity : AppCompatActivity() {
     private var credentialsDialog: AlertDialog? = null
     private var credentialsContent: CredentialsDialogContent? = null
 
+    private var usbPermissionRequested = false
+
     private val scope = CoroutineScope(Dispatchers.Main + Job())
 
     private val usbPermissionReceiver = object : BroadcastReceiver() {
@@ -90,6 +92,8 @@ class MainActivity : AppCompatActivity() {
     private val usbAttachReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == UsbManager.ACTION_USB_DEVICE_ATTACHED) {
+                usbPermissionRequested = false
+
                 val device = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     intent.getParcelableExtra(UsbManager.EXTRA_DEVICE, UsbDevice::class.java)
                 } else {
@@ -331,7 +335,7 @@ class MainActivity : AppCompatActivity() {
             val device = devices.first()
             if (usbManager.hasPermission(device)) {
                 connectToUsbDevice(device)
-            } else {
+            } else if (!usbPermissionRequested) {
                 requestUsbPermission(device)
             }
         }
@@ -357,6 +361,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun requestUsbPermission(device: UsbDevice) {
+        usbPermissionRequested = true
+
         val intent = Intent(ACTION_USB_PERMISSION).apply {
             setPackage(packageName)
         }
